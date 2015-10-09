@@ -20,15 +20,17 @@ public class Client extends Thread {
     }
 
     public void run() {
-        int allocatedToSelf = 0;
         long sleepTime, sleepTimeDifference = maxSleepMillis - minSleepMillis;
+
+        banker.setClaim(nUnits);
 
         for(int i = 0; i < nRequests; i++) {
             if(banker.remaining() == 0) {
-                banker.release(allocatedToSelf);
+                if(banker.allocated() > 0) {
+                    banker.release(banker.allocated());
+                }
             } else {
-                banker.request(this.nUnits);
-                allocatedToSelf = banker.allocated();
+                banker.request((int)(banker.remaining() * Math.random()) + 1);
             }
 
             sleepTime = minSleepMillis + (long)(Math.random() * sleepTimeDifference);
@@ -40,6 +42,8 @@ public class Client extends Thread {
             }
         }
 
-        banker.release(allocatedToSelf);
+        if(banker.allocated() > 0) {
+            banker.release(banker.allocated());
+        }
     }
 }

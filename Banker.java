@@ -25,10 +25,11 @@ public class Banker {
      * The current thread attempts to register a claim for up to nUnits of resource.
      * @param nUnits - units requested for a claim
      */
-    public void setClaim(int nUnits) {
+    public synchronized void setClaim(int nUnits) {
         Thread currentThread = Thread.currentThread();
 
         if(threadMap.get(currentThread.getName()) != null || nUnits <= 0 || nUnits > this.nUnits) {
+            System.out.printf("setClaim Error\n");
             System.exit(1);
         }
 
@@ -49,11 +50,11 @@ public class Banker {
      * @return True if request is successful.
      */
     public synchronized boolean request(int nUnits) {
-
         Thread currentThread = Thread.currentThread();
 
         if(!threadMap.containsKey(currentThread.getName()) || nUnits <= 0 ||
                 nUnits > threadMap.get(currentThread.getName()).get(REMAINING)) {
+            System.out.printf("Request Error\n");
             System.exit(1);
         }
 
@@ -95,6 +96,7 @@ public class Banker {
 
         if(!threadMap.containsKey(currentThread.getName()) || nUnits <= 0 ||
                 nUnits > threadMap.get(currentThread.getName()).get(ALLOCATED)) {
+            System.out.printf("Release Error\n");
             System.exit(1);
         }
 
@@ -106,13 +108,12 @@ public class Banker {
         this.nUnits += nUnits;
 
         notifyAll();
-
     }
 
     /**
      * @return The number of units allocated to the current thread
      */
-    public int allocated() {
+    public synchronized int allocated() {
         Thread currentThread = Thread.currentThread();
         return threadMap.get(currentThread.getName()).get(ALLOCATED);
     }
@@ -120,7 +121,7 @@ public class Banker {
     /**
      * @return The number of units remaining in the current thread's claim.
      */
-    public int remaining() {
+    public synchronized int remaining() {
         Thread currentThread = Thread.currentThread();
         return threadMap.get(currentThread.getName()).get(REMAINING);
     }
